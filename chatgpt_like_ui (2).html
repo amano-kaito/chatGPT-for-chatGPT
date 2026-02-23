@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ChatGPT風AI</title>
+<style>
+body{margin:0;font-family:Arial;background:#0f172a;color:white;display:flex;height:100vh}
+.sidebar{width:240px;background:#020617;padding:15px;display:flex;flex-direction:column;gap:10px;border-right:1px solid #1e293b}
+.new-chat{padding:10px;border:1px solid #334155;border-radius:8px;cursor:pointer;text-align:center}
+.new-chat:hover{background:#1e293b}
+.history{flex:1;overflow-y:auto}
+.main{flex:1;display:flex;flex-direction:column}
+.chat{padding:20px;overflow-y:auto;flex:1}
+.msg{max-width:700px;padding:12px 16px;margin-bottom:12px;border-radius:12px;white-space:pre-wrap}
+.user{background:#2563eb;margin-left:auto}
+.bot{background:#1e293b}
+.input-box{display:flex;padding:15px;border-top:1px solid #1e293b;gap:10px}
+input{flex:1;padding:12px;border-radius:10px;border:none;outline:none}
+button{padding:12px 20px;border:none;border-radius:10px;background:#22c55e;color:white;font-weight:bold;cursor:pointer}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+<div class="new-chat" onclick="newChat()">＋ 新しいチャット</div>
+<div class="history" id="history"></div>
+</div>
+
+<div class="main">
+<div class="chat" id="chat"></div>
+<div class="input-box">
+<input id="input" placeholder="質問してみよう..." />
+<button onclick="send()">送信</button>
+</div>
+</div>
+
+<script>
+const chat = document.getElementById("chat");
+const input = document.getElementById("input");
+
+function addMessage(text,type){
+const msg=document.createElement("div");
+msg.className="msg "+type;
+msg.textContent=text;
+chat.appendChild(msg);
+chat.scrollTop=chat.scrollHeight;
+}
+
+// ===== リアルタイム思考AI（疑似CPU） =====
+
+function analyze(text){
+text=text.toLowerCase();
+
+let intent={};
+
+// 質問タイプ
+if(text.includes("とは")) intent.type="explain";
+if(text.includes("なぜ")||text.includes("理由")) intent.type="reason";
+if(text.includes("方法")||text.includes("やり方")||text.includes("どうやって")) intent.type="how";
+
+// 分野検出
+if(text.includes("マイクラ")||text.includes("minecraft")) intent.topic="minecraft";
+if(text.includes("pvp")) intent.topic="pvp";
+if(text.includes("html")) intent.topic="html";
+if(text.includes("ai")) intent.topic="ai";
+if(text.includes("勉強")) intent.topic="study";
+
+return intent;
+}
+
+function think(intent,text){
+
+// ===== 分野ごとの知識生成 =====
+
+if(intent.topic==="minecraft"){
+if(intent.type==="how"){
+return "Minecraftのやり方について説明するね。\n\n①目標を決める（PvP・建築・サーバーなど）\n②必要な知識（コマンドや操作）を覚える\n③練習して改善\n\n具体的に何を知りたい？";
+}
+if(intent.type==="reason"){
+return "Minecraftではゲームバランスや仕様が理由になることが多い。例えばPvPはノックバックやラグの影響を受ける。";
+}
+return "Minecraftの質問だね。PvP・コマンド・mod・サーバーなど幅広く答えられるよ。";
+}
+
+if(intent.topic==="pvp"){
+return "PvPで強くなるには、クリック速度だけでなくエイム・距離管理・ノックバック制御が重要。練習方法も教えられるよ。";
+}
+
+if(intent.topic==="html"){
+if(intent.type==="how"){
+return "HTMLの学習方法:\n①タグを覚える\n②CSSでデザイン\n③JavaScriptで動き\n④実際にサイトを作る\n\n作りたいものは？";
+}
+return "HTMLはWebページの骨組みを作る言語。CSSとJSと組み合わせて使う。";
+}
+
+if(intent.topic==="ai"){
+return "AIは大量のデータからパターンを学び、質問に応じて最適な回答を生成する技術。";
+}
+
+if(intent.topic==="study"){
+return "効率よく勉強するには、短時間集中→復習→アウトプットが重要。";
+}
+
+// ===== 汎用生成 =====
+
+if(intent.type==="explain"){
+return "『"+text.replace("とは","")+"』は、意味・仕組み・特徴を説明すると理解しやすい。もう少し詳しく聞いてくれれば深く解説するよ。";
+}
+
+if(intent.type==="how"){
+return "やり方は目的によって変わる。\n①目標\n②準備\n③実行\n④改善\n\n詳しい条件を教えて。";
+}
+
+if(intent.type==="reason"){
+return "理由は状況や前提によって変わる。背景を教えてくれると正確に答え think できる。";
+}
+
+return "質問を理解している。もう少し具体的に教えてくれれば最適な回答を生成できる。";
+}
+
+function generate(text){
+const intent=analyze(text);
+return think(intent,text);
+}
+
+function send(){
+const text=input.value.trim();
+if(!text) return;
+
+addMessage(text,"user");
+
+setTimeout(()=>{
+addMessage(generate(text),"bot");
+},200);
+
+input.value="";
+}
+
+input.addEventListener("keypress",e=>{if(e.key==="Enter")send();});
+
+function newChat(){chat.innerHTML="";}
+
+</script>
+
+</body>
+</html>
